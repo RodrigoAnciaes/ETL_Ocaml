@@ -17,6 +17,8 @@ type order_item = {
 
 let read_order_data file_name =
   let csv = Csv.load file_name in
+  (*remove the headers before*)
+  let csv = List.tl csv in
   let orders = List.map (fun row ->
     let row = Array.of_list row in  (* Convert list to array *)
     {
@@ -31,6 +33,8 @@ let read_order_data file_name =
 
 let read_order_item_data file_name =
   let csv = Csv.load file_name in
+  (*remove the headers before*)
+  let csv = List.tl csv in
   let order_items = List.map (fun row ->
     let row = Array.of_list row in  (* Convert list to array *)
     {
@@ -42,11 +46,3 @@ let read_order_item_data file_name =
     }
   ) csv in
   order_items
-
-let orders = read_order_data "data/order.csv";;
-let order_items = read_order_item_data "data/order_item.csv";;
-
-let () =
-  List.iter (fun order ->
-    Printf.printf "Order id: %d\n" order.id
-  ) orders;;

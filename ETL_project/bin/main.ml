@@ -1,8 +1,6 @@
 
-
-(*import and use read_order_data from read_data.ml*)
-
 let () =
+  Printf.printf "Hello, world!\n";;
   let orders = Read_data.read_order_data "data/order.csv" in
   List.iter (fun order ->
     Printf.printf "Order id: %d\n" order.Read_data.id
