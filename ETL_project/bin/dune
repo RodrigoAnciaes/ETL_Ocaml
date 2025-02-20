@@ -2,3 +2,7 @@
  (public_name ETL_project)
  (name main)
  (libraries ETL_project))
+
+(executable
+ (name read_data)
+ (libraries ETL_project))
