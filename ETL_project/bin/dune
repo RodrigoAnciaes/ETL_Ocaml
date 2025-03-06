@@ -6,3 +6,7 @@
 (executable
  (name read_data)
  (libraries ETL_project))
+
+(executable
+ (name process_data)
+ (libraries ETL_project))
