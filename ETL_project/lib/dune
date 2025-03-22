@@ -1,4 +1,8 @@
 (library
- (name ETL_project)
- (libraries csv sqlite3))
+ (name ETL_project_lib)
+ (public_name ETL_project.lib)
+ (libraries csv sqlite3)
+ (wrapped true))
 
+(documentation
+ (package ETL_project))

@@ -1,3 +1,5 @@
+open ETL_project_lib
+
 (* Main Execution *)
 let () =
   (* Parse command line arguments *)

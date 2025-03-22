@@ -4,23 +4,12 @@
 
 (generate_opam_files true)
 
-(source
- (github username/reponame))
-
-(authors "Author Name <author@example.com>")
-
-(maintainers "Maintainer Name <maintainer@example.com>")
-
-(license LICENSE)
-
-(documentation https://url/to/documentation)
-
 (package
  (name ETL_project)
- (synopsis "A short synopsis")
- (description "A longer description")
- (depends ocaml)
- (tags
-  ("add topics" "to describe" your project)))
-
-; See the complete stanza docs at https://dune.readthedocs.io/en/stable/reference/dune-project/index.html
+ (synopsis "Order processing tool")
+ (description "Processes order data to calculate totals and taxes")
+ (depends
+  (ocaml (>= 4.08.0))
+  csv
+  sqlite3
+  (odoc :with-doc)))
