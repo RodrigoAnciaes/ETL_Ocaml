@@ -1,23 +1,32 @@
+(** Types for order processing **)
 
+(** Represents an order in the system *)
 type order = {
-  id: int;
-  client_id: int;
-  order_date: string;
-  status: string;
-  origin: string;
+  id: int;               (** Unique identifier for the order *)
+  client_id: int;        (** Identifier of the client who placed the order *)
+  order_date: string;    (** Date when the order was placed *)
+  status: string;        (** Current status of the order (e.g., "Complete", "Processing") *)
+  origin: string;        (** Origin of the order (e.g., "O", "W") *)
 }
 
+(** Represents an item within an order *)
 type order_item = {
-  order_id: int;
-  product_id: int;
-  quantity: int;
-  price: float;
-  tax: float;
+  order_id: int;         (** Identifier of the order this item belongs to *)
+  product_id: int;       (** Identifier of the product *)
+  quantity: int;         (** Quantity of the product ordered *)
+  price: float;          (** Unit price of the product *)
+  tax: float;            (** Tax rate applied to this item (as a decimal) *)
 }
 
-let read_order_data file_name =
+(** 
+ * Reads order data from a CSV file.
+ *
+ * @param file_name Path to the CSV file containing order data
+ * @return List of order records
+ *)
+ let read_order_data file_name =
   let csv = Csv.load file_name in
-  let csv = List.tl csv in (*remove the headers before*)
+  let csv = List.tl csv in (* remove the headers *)
   let orders = List.map (fun row ->
     let row = Array.of_list row in  (* Convert list to array *)
     {
@@ -30,9 +39,15 @@ let read_order_data file_name =
   ) csv in
   orders
 
-let read_order_item_data file_name =
+(** 
+ * Reads order item data from a CSV file.
+ *
+ * @param file_name Path to the CSV file containing order item data
+ * @return List of order item records
+ *)
+ let read_order_item_data file_name =
   let csv = Csv.load file_name in
-  let csv = List.tl csv in (*remove the headers before*)
+  let csv = List.tl csv in (* remove the headers *)
   let order_items = List.map (fun row ->
     let row = Array.of_list row in  (* Convert list to array *)
     {

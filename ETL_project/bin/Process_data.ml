@@ -3,6 +3,14 @@ type result_record = {
   total_tax: float;   (* total_amount * tax *)
 };;
 
+(** 
+ * Transforms orders and order items into result records.
+ * Calculates total amounts and taxes for each order.
+ *
+ * @param orders List of orders to process
+ * @param order_items List of order items to process
+ * @return List of tuples (order_id, total_amount, total_tax)
+ *)
 let transform_to_result orders order_items =
   (* First filter order_items to only include those that belong to orders in the list *)
   let relevant_order_ids = List.map (fun order -> order.Read_data.id) orders in
@@ -40,10 +48,24 @@ let transform_to_result orders order_items =
   ) orders
 
 
+(** 
+ * Filters orders by origin and status, then processes them.
+ *
+ * @param transformer Function to transform filtered orders and items
+ * @param orders List of all orders
+ * @param order_items List of all order items
+ * @param origin Origin to filter by
+ * @param status Status to filter by
+ * @return List of processed results after filtering
+ *)
 let origin_status_filter transformer orders order_items origin status =
   let filtered_orders = List.filter (fun order ->
     order.Read_data.origin = origin && order.Read_data.status = status
   ) orders in
   transformer filtered_orders order_items;;
 
+
+  (** 
+ * Convenience function that combines filtering and transformation
+ *)
 let transform_to_result_with_filter = origin_status_filter transform_to_result;;
