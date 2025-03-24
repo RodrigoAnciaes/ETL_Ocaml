@@ -1,2 +1,4 @@
 (test
- (name test_ETL_project))
+ (name test_ETL_project)
+ (libraries ETL_project_lib ounit2 csv sqlite3)
+ (deps (glob_files ../data/*.csv)))
