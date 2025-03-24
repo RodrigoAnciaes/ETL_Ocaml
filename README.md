@@ -20,6 +20,18 @@ This tool processes order data to calculate total amounts and taxes for orders, 
 
 2. The executable will be available in the `_build/default` directory.
 
+## Build code documentation
+
+1. Run the following command to generate the documentation:
+   ```
+   dune build @doc
+   ```
+
+2. Open the generated HTML file in your browser:
+   ``` 
+    open _build/default/_doc/_html/index.html
+    ```
+
 ## Running the Tool
 
 ### Basic Usage
