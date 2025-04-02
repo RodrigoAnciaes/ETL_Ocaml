@@ -3,6 +3,10 @@
 (name ETL_project)
 
 (generate_opam_files true)
+(maintainers "N/A")
+(authors "Rodrigo Anciães Patelli")
+(homepage "https://github.com/RodrigoAnciaes/ETL_Ocaml")
+(bug_reports "https://github.com/RodrigoAnciaes/ETL_Ocaml/issues")
 
 (package
  (name ETL_project)
@@ -12,5 +16,5 @@
   (ocaml (>= 4.08.0))
   csv
   sqlite3
-  curl
+  ocurl
   (odoc :with-doc)))

@@ -2,12 +2,16 @@
 opam-version: "2.0"
 synopsis: "Order processing tool"
 description: "Processes order data to calculate totals and taxes"
+maintainer: ["N/A"]
+authors: ["Rodrigo Anciães Patelli"]
+homepage: "https://github.com/RodrigoAnciaes/ETL_Ocaml"
+bug-reports: "https://github.com/RodrigoAnciaes/ETL_Ocaml/issues"
 depends: [
   "dune" {>= "3.17"}
   "ocaml" {>= "4.08.0"}
   "csv"
   "sqlite3"
-  "curl"
+  "ocurl"
   "odoc" {with-doc}
 ]
 build: [
