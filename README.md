@@ -15,12 +15,20 @@ This tool processes order data to calculate total amounts and taxes for orders, 
 
 ## Installation
 
-1. Ensure the project is built with Dune:
+1. Enter the Dune project directory:
+   ```
+   cd ETL_project
+   ```
+
+2. Install the required OCaml packages:
+   ```
+   opam install . --deps-only
+   ```
+
+3. Ensure the project is built with Dune:
    ```
    dune build
    ```
-
-2. The executable will be available in the `_build/default` directory.
 
 ## Build code documentation
 
@@ -70,7 +78,7 @@ When a GitHub URL is provided, the tool automatically downloads the file using `
 
 ### Examples
 
-**Process all completed orders with origin "O" using GitHub data:**
+**Process all completed orders with origin "O" using GitHub data (default):**
 ```
 dune exec ETL_project
 ```
