@@ -1,5 +1,6 @@
 # ETL_Ocaml
 
+# [Project Report File](ETL_Relatorio.pdf)
 # Order Data Processing Tool - User Guide
 
 This tool processes order data to calculate total amounts and taxes for orders, filtered by status and origin. The output is saved as both CSV and SQLite database files.
