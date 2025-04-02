@@ -10,6 +10,7 @@ This tool processes order data to calculate total amounts and taxes for orders, 
 - Required packages:
   - csv
   - sqlite3
+- `curl` (ocurl) command-line tool (for GitHub URL functionality)
 
 ## Installation
 
@@ -48,19 +49,39 @@ dune exec ETL_project -- [OPTIONS]
 | `--origin` | Filter by order origin | "O" |
 | `--output-csv` | Output CSV file path | "data/results.csv" |
 | `--output-db` | Output SQLite DB file path | "data/results.db" |
-| `--input-order` | Input order CSV file path | "data/order.csv" |
-| `--input-order-item` | Input order item CSV file path | "data/order_item.csv" |
+| `--input-order` | Input order CSV file path | "github://RodrigoAnciaes/Data_for_ETL_Ocaml/main/order.csv" |
+| `--input-order-item` | Input order item CSV file path | "github://RodrigoAnciaes/Data_for_ETL_Ocaml/main/order_item.csv" |
+| `--use-local` | Use local files instead of GitHub | Default is to use GitHub URLs |
+
+### GitHub URL Support
+
+The tool now supports fetching data directly from GitHub repositories using URLs in the format:
+```
+github://USERNAME/REPOSITORY/BRANCH/PATH/TO/FILE.csv
+```
+
+For example:
+```
+github://RodrigoAnciaes/Data_for_ETL_Ocaml/main/order.csv
+```
+
+When a GitHub URL is provided, the tool automatically downloads the file using `curl` before processing.
 
 ### Examples
 
-**Process all completed orders with origin "O":**
+**Process all completed orders with origin "O" using GitHub data:**
 ```
 dune exec ETL_project
 ```
 
-**Process orders with status "Processing" and origin "W":**
+**Process orders with status "Processing" and origin "W" using GitHub data:**
 ```
 dune exec ETL_project -- --status "Pending" --origin "P"
+```
+
+**Use local files instead of GitHub:**
+```
+dune exec ETL_project -- --use-local
 ```
 
 **Specify custom input and output files:**
@@ -85,4 +106,4 @@ If you encounter any issues:
 1. Ensure all input files exist and are in the correct format
 2. Check that you have write permissions for the output locations
 3. Verify that all required OCaml packages are installed
- 
+4. If using GitHub URLs, ensure you have internet connectivity and `curl` is installed
