@@ -19,8 +19,13 @@ type order_item = {
 (** 
  * Fetch content from a URL using curl or read from a local file
  * 
+ * This function handles both local file paths and GitHub URLs in the format
+ * "github://USERNAME/REPOSITORY/BRANCH/PATH/TO/FILE". For GitHub URLs, 
+ * it uses curl to download the file to a temporary location.
+ *
  * @param file_path The path or URL to the file
- * @return The content of the file as a string
+ * @return The path to the actual file (either original path or downloaded temp file)
+ * @raise Failure if the download fails
  *)
 let get_file_content file_path =
   if String.starts_with ~prefix:"github://" file_path then
@@ -51,8 +56,13 @@ let get_file_content file_path =
 (**
  * Reads order data from a CSV file.
  *
+ * This function reads order records from a CSV file, which can be either
+ * a local file or a GitHub URL. The CSV file should have headers and the
+ * following columns (in order): id, client_id, order_date, status, origin.
+ *
  * @param file_name Path to the CSV file containing order data
  * @return List of order records
+ * @raise Failure if the file doesn't exist or has an invalid format
  *)
 let read_order_data file_name =
   let actual_file = get_file_content file_name in
@@ -76,8 +86,13 @@ let read_order_data file_name =
 (**
  * Reads order item data from a CSV file.
  *
+ * This function reads order item records from a CSV file, which can be either
+ * a local file or a GitHub URL. The CSV file should have headers and the
+ * following columns (in order): order_id, product_id, quantity, price, tax.
+ *
  * @param file_name Path to the CSV file containing order item data
  * @return List of order item records
+ * @raise Failure if the file doesn't exist or has an invalid format
  *)
 let read_order_item_data file_name =
   let actual_file = get_file_content file_name in
