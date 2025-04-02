@@ -1,7 +1,7 @@
 (library
  (name ETL_project_lib)
  (public_name ETL_project.lib)
- (libraries csv sqlite3)
+ (libraries csv sqlite3 curl)
  (wrapped true))
 
 (documentation

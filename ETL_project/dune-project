@@ -12,4 +12,5 @@
   (ocaml (>= 4.08.0))
   csv
   sqlite3
+  curl
   (odoc :with-doc)))
