@@ -1,46 +1,65 @@
-(** 
- * Fetches a CSV file from a GitHub repository using HTTP GET.
- *
- * @param repo_owner GitHub username or organization
- * @param repo_name Name of the repository
- * @param branch Branch name (e.g., "main" or "master")
- * @param file_path Path to the CSV file within the repository
- * @return CSV content as a string
- *)
- let fetch_csv_from_github repo_owner repo_name branch file_path =
-  let url = Printf.sprintf "https://raw.githubusercontent.com/%s/%s/%s/%s" 
-              repo_owner repo_name branch file_path in
-  try
-    let channel = Curl.init () in
-    Curl.set_url channel url;
-    Curl.set_writefunction channel (fun data -> Buffer.add_string (Curl.get_userdata channel) data; String.length data);
-    let buffer = Buffer.create 16384 in
-    Curl.set_userdata channel buffer;
-    Curl.perform channel;
-    let status_code = Curl.get_httpcode channel in
-    Curl.cleanup channel;
-    if status_code = 200 then
-      Buffer.contents buffer
-    else
-      failwith (Printf.sprintf "Failed to fetch CSV: HTTP status %d" status_code)
-  with
-  | Curl.CurlException (_, _, error) -> 
-      failwith (Printf.sprintf "Curl error: %s" error)
-  | Failure msg -> 
-      failwith (Printf.sprintf "Error: %s" msg)
+(** Represents an order in the system *)
+type order = {
+  id: int;               (** Unique identifier for the order *)
+  client_id: int;        (** Identifier of the client who placed the order *)
+  order_date: string;    (** Date when the order was placed *)
+  status: string;        (** Current status of the order (e.g., "Complete", "Processing") *)
+  origin: string;        (** Origin of the order (e.g., "O", "W") *)
+}
+
+(** Represents an item within an order *)
+type order_item = {
+  order_id: int;         (** Identifier of the order this item belongs to *)
+  product_id: int;       (** Identifier of the product *)
+  quantity: int;         (** Quantity of the product ordered *)
+  price: float;          (** Unit price of the product *)
+  tax: float;            (** Tax rate applied to this item (as a decimal) *)
+}
 
 (** 
- * Reads order data from a CSV file hosted on GitHub.
+ * Fetch content from a URL using curl or read from a local file
+ * 
+ * @param file_path The path or URL to the file
+ * @return The content of the file as a string
+ *)
+let get_file_content file_path =
+  if String.starts_with ~prefix:"github://" file_path then
+    (* Convert GitHub URL format to raw content URL *)
+    let url_parts = String.split_on_char '/' (String.sub file_path 9 (String.length file_path - 9)) in
+    let username = List.nth url_parts 0 in
+    let repo = List.nth url_parts 1 in
+    let branch = List.nth url_parts 2 in
+    let file = String.concat "/" (List.tl (List.tl (List.tl url_parts))) in
+    let raw_url = Printf.sprintf "https://raw.githubusercontent.com/%s/%s/%s/%s" username repo branch file in
+    
+    (* Create a temporary file to store the downloaded content *)
+    let temp_file = Filename.temp_file "ocaml_etl_" ".csv" in
+    
+    (* Download the file using curl *)
+    let curl_cmd = Printf.sprintf "curl -s -L '%s' -o %s" raw_url temp_file in
+    let status = Sys.command curl_cmd in
+    
+    if status <> 0 then
+      failwith (Printf.sprintf "Failed to download file from %s (curl exit code: %d)" raw_url status);
+    
+    (* Return the path to the downloaded file *)
+    temp_file
+  else
+    (* Local file, return as is *)
+    file_path
+
+(**
+ * Reads order data from a CSV file.
  *
- * @param repo_owner GitHub username or organization
- * @param repo_name Name of the repository
- * @param branch Branch name (e.g., "main" or "master")
- * @param file_path Path to the CSV file within the repository
+ * @param file_name Path to the CSV file containing order data
  * @return List of order records
  *)
-let read_order_data_from_github repo_owner repo_name branch file_path =
-  let csv_content = fetch_csv_from_github repo_owner repo_name branch file_path in
-  let csv = Csv.of_string csv_content in
+let read_order_data file_name =
+  let actual_file = get_file_content file_name in
+  let csv = Csv.load actual_file in
+  (* If we downloaded to a temporary file, clean it up *)
+  if actual_file <> file_name then Sys.remove actual_file;
+  
   let csv = List.tl csv in (* remove the headers *)
   let orders = List.map (fun row ->
     let row = Array.of_list row in  (* Convert list to array *)
@@ -54,18 +73,18 @@ let read_order_data_from_github repo_owner repo_name branch file_path =
   ) csv in
   orders
 
-(** 
- * Reads order item data from a CSV file hosted on GitHub.
+(**
+ * Reads order item data from a CSV file.
  *
- * @param repo_owner GitHub username or organization
- * @param repo_name Name of the repository
- * @param branch Branch name (e.g., "main" or "master")
- * @param file_path Path to the CSV file within the repository
+ * @param file_name Path to the CSV file containing order item data
  * @return List of order item records
  *)
-let read_order_item_data_from_github repo_owner repo_name branch file_path =
-  let csv_content = fetch_csv_from_github repo_owner repo_name branch file_path in
-  let csv = Csv.of_string csv_content in
+let read_order_item_data file_name =
+  let actual_file = get_file_content file_name in
+  let csv = Csv.load actual_file in
+  (* If we downloaded to a temporary file, clean it up *)
+  if actual_file <> file_name then Sys.remove actual_file;
+  
   let csv = List.tl csv in (* remove the headers *)
   let order_items = List.map (fun row ->
     let row = Array.of_list row in  (* Convert list to array *)
@@ -78,75 +97,3 @@ let read_order_item_data_from_github repo_owner repo_name branch file_path =
     }
   ) csv in
   order_items
-
-(** 
- * Enhanced version of read_order_data that can handle both local files and GitHub URLs.
- * If the path starts with "github://", it parses it as a GitHub URL.
- * Format: github://owner/repo/branch/path/to/file.csv
- *
- * @param source Path to local file or GitHub URL
- * @return List of order records
- *)
-let read_order_data source =
-  if String.length source > 9 && String.sub source 0 9 = "github://" then
-    let github_path = String.sub source 9 (String.length source - 9) in
-    let parts = String.split_on_char '/' github_path in
-    if List.length parts < 4 then
-      failwith "Invalid GitHub URL format. Use: github://owner/repo/branch/path/to/file.csv"
-    else
-      let owner = List.nth parts 0 in
-      let repo = List.nth parts 1 in
-      let branch = List.nth parts 2 in
-      let file_path = String.concat "/" (List.filteri (fun i _ -> i > 2) parts) in
-      read_order_data_from_github owner repo branch file_path
-  else
-    (* Original function for local files *)
-    let csv = Csv.load source in
-    let csv = List.tl csv in (* remove the headers *)
-    let orders = List.map (fun row ->
-      let row = Array.of_list row in  (* Convert list to array *)
-      {
-        id = int_of_string row.(0);
-        client_id = int_of_string row.(1);
-        order_date = row.(2);
-        status = row.(3);
-        origin = row.(4);
-      }
-    ) csv in
-    orders
-
-(** 
- * Enhanced version of read_order_item_data that can handle both local files and GitHub URLs.
- * If the path starts with "github://", it parses it as a GitHub URL.
- * Format: github://owner/repo/branch/path/to/file.csv
- *
- * @param source Path to local file or GitHub URL
- * @return List of order item records
- *)
-let read_order_item_data source =
-  if String.length source > 9 && String.sub source 0 9 = "github://" then
-    let github_path = String.sub source 9 (String.length source - 9) in
-    let parts = String.split_on_char '/' github_path in
-    if List.length parts < 4 then
-      failwith "Invalid GitHub URL format. Use: github://owner/repo/branch/path/to/file.csv"
-    else
-      let owner = List.nth parts 0 in
-      let repo = List.nth parts 1 in
-      let branch = List.nth parts 2 in
-      let file_path = String.concat "/" (List.filteri (fun i _ -> i > 2) parts) in
-      read_order_item_data_from_github owner repo branch file_path
-  else
-    (* Original function for local files *)
-    let csv = Csv.load source in
-    let csv = List.tl csv in (* remove the headers *)
-    let order_items = List.map (fun row ->
-      let row = Array.of_list row in  (* Convert list to array *)
-      {
-        order_id = int_of_string row.(0);
-        product_id = int_of_string row.(1);
-        quantity = int_of_string row.(2);
-        price = float_of_string row.(3);
-        tax = float_of_string row.(4);
-      }
-    ) csv in
-    order_items
